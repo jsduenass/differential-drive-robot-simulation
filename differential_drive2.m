@@ -21,11 +21,11 @@ E0=[0,0,0];
 space_x=30;
 space_y=30;
 
-dt=0;
+dt=0.001;
 variables=[];
 
 %% trayectoria
-% calculo de la trayectorio utlizando un cotrolador 
+% calculo de la trayectorio utilizando un cotrolador proporcional 
 [n,m]=size(Trayectoria)
 
 for i=1:n
@@ -34,7 +34,7 @@ for i=1:n
     E_s= Transformada(E0,E_obj);            % diferencia entre posicion del robot y objetivo
     dx= E_s(1);    dy=E_s(2);   d_tetha=E_s(3);
     
-    while max(abs([dx, dy]))>0.1  | mod(d_tetha,2*pi)> (1*pi/180)
+    while max(abs([dx, dy]))>1  | mod(d_tetha,2*pi)> (10*pi/180)
     %for var_contadora=1:400
         E_s= Transformada(E0,E_obj);
         dx= E_s(1);    dy=E_s(2);   d_tetha=E_s(3);
@@ -87,15 +87,27 @@ theta=variables(:,3)';
 
 %% animacion
 % save to file
+filename = 'differential-robot.gif';
 
-film=false;
-if(film)
-    myVideo = VideoWriter('movile_robot_animation.avi'); %open video file
-    myVideo.FrameRate = 30;  %can adjust this, 5 - 10 works well for me
-    open(myVideo)
-end
 
-figure('Renderer', 'painters', 'Position', [50 50 800 700])
+film=true;
+% if(film)
+%     myVideo = VideoWriter('movile_robot_animation.avi'); %open video file
+%     myVideo.FrameRate = 30;  %can adjust this, 5 - 10 works well for me
+%     open(myVideo)
+% end
+
+h=figure('Renderer', 'painters', 'Position', [50 50 800 700])
+set(gca, 'OuterPosition', [0,0,1,1])
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width ax_height];
+
 %laberinto
 %x_lab=[0 -3.5 -3.5 1.5 1.5 3.5 3.5 -2.5 -2.5 1.5 1.5 -1]
 %y_lab=[0 0 3.5 3.5 -1.5 -1.5 -8 -8 -5.5 -5.5 -3.5 -3.5]
@@ -136,24 +148,36 @@ for i=1:length(x0)
     robot.XData=[x]; robot.YData=[y];
     addpoints(center,x(1),y(1));
     % write to 
-    if (film)
-        frame = getframe(gcf); %get frame
-        writeVideo(myVideo, frame);
-    end 
+%     if (film)
+%         frame = getframe(gcf); %get frame
+%         writeVideo(myVideo, frame);
+%     end 
     drawnow
-    pause(dt)
+    
+    if (film)   
+      % Capture the plot as an image 
+      frame = getframe(h); 
+      im = frame2im(frame); 
+      [imind,cm] = rgb2ind(im,256); 
+      % Write to the GIF File 
+      if i == 1 
+          imwrite(imind,cm,filename,'gif', 'Loopcount',inf); 
+      else 
+          imwrite(imind,cm,filename,'gif','WriteMode','append','DelayTime',dt); 
+      end 
+    end
+
+    %pause(dt)
 end
 
 save('robot location.mat','x_rob','y_rob')
-if(film)
-    close(myVideo)
-end
+
 %% salidas -----------------------------------
 variables=variables(1:10:end,:);
 variables(:,3)=180/pi*variables(:,3);
 variables(:,6)=180/pi*variables(:,6);
 
-variables
+%variables
 
 
 
