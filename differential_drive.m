@@ -49,7 +49,7 @@ for i=1:n
     [x,y]=Transform(x,y,dx_prima,dy_prima, theta);
     
     
-    variables(i,:)=[x,y, theta, vc, omega];
+    variables(i,:)=[x, y, theta, vc, omega];
 end
 
 x=variables(:,1);
