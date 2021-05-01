@@ -97,7 +97,7 @@ film=true;
 %     open(myVideo)
 % end
 
-h=figure('Renderer', 'painters', 'Position', [50 50 800 700])
+h=figure('Renderer', 'painters', 'Position', [50 50 800 500])
 set(gca, 'OuterPosition', [0,0,1,1])
 ax = gca;
 outerpos = ax.OuterPosition;
@@ -139,6 +139,7 @@ ylim([-space_y space_y])
 
  x_rob=[];
  y_rob=[];
+ axis equal
 for i=1:length(x0)
     
     [x, y]= Trans(x0(i),y0(i),theta(i),x_prima,y_prima);
@@ -147,6 +148,7 @@ for i=1:length(x0)
     
     robot.XData=[x]; robot.YData=[y];
     addpoints(center,x(1),y(1));
+    
     % write to 
 %     if (film)
 %         frame = getframe(gcf); %get frame
@@ -154,7 +156,7 @@ for i=1:length(x0)
 %     end 
     drawnow
     
-    if (film)   
+    if (film & mod(i,5)==1)   
       % Capture the plot as an image 
       frame = getframe(h); 
       im = frame2im(frame); 
@@ -170,7 +172,7 @@ for i=1:length(x0)
     %pause(dt)
 end
 
-save('robot location.mat','x_rob','y_rob')
+save('robot_location.mat','x_rob','y_rob')
 
 %% salidas -----------------------------------
 variables=variables(1:10:end,:);
