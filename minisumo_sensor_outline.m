@@ -19,22 +19,33 @@ sensors.Activated=sensorActivated;
 
 %% simulate
 state0=[0 0 0]';
-tspan=[0,40];
-
+tspan=linspace(0,40,100);
+tspan=[0 20]
 [t,states] = ode45(@(t,state)movement(t,state,sensors),tspan,state0);
 xTraject=states(:,1);
 yTraject=states(:,2);
 
 %% Plot
 % 'plane.stl'
-
 figure(1)
+subplot(2,2,1)
+plot(t,xTraject)
+
+subplot(2,2,2)
+plot(t,yTraject)
+
+subplot(2,1,2)
+plot(xTraject,yTraject)
+
+
+%% animate
+figure(2)
 n=size(states,1)
 
-for k = 1:n
+for k = 1:100:n
     translations=states(k,:);
     %rotations=zeros(size(translations,1),4);
-    rotations=quaternion(zeros(size(translations,1),3),'rotvec');
+    rotations=quaternion([0,0,0],'rotvec');
     %
     ax = plotTransforms(translations,rotations,"MeshFilePath","robot.stl","MeshColor",[0.6 0.6 0.6]);
     axis equal
@@ -46,16 +57,6 @@ for k = 1:n
 
 end
 
-%%
-figure(2)
-subplot(2,2,1)
-plot(t,xTraject)
-
-subplot(2,2,2)
-plot(t,yTraject)
-
-subplot(2,1,2)
-plot(xTraject,yTraject)
 
 %%
 [linearVelocity,angularVelocity,target,xBeam,yBeam]=pointFollower(sensors)
@@ -74,7 +75,11 @@ quiver(pos(1,:),pos(2,:),xBeam,yBeam,'off')       % draw sensor signals
 
 quiver(0,0,target(1),target(2),'off')             % draw target
 
-axis equal
+ axis equal
+xline(0)
+yline(0)
+axis([-2 2 -2 2])
+hold off
 %% functions
 
 function [linearVelocity,angularVelocity,target,xBeam,yBeam]=pointFollower(sensors)
@@ -92,7 +97,7 @@ function [linearVelocity,angularVelocity,target,xBeam,yBeam]=pointFollower(senso
     
     target=mean(beam(:,sensorActivated),2);
     
-    [r,theta]=pol2cart(target(1),target(2));
+    [theta,r]=pol2cart(target(1),target(2));
     
     linearVelocity=kV*r;
     angularVelocity=kOmega*theta;
@@ -101,13 +106,12 @@ function [linearVelocity,angularVelocity,target,xBeam,yBeam]=pointFollower(senso
 end
 
 function dState=movement(t,state,sensors)
-    rho=state(1);
-    theta=state(2);
-    
-    [x,y]=pol2cart(theta,rho);
-    [dRho,dTheta]=pointFollower(sensors);
-    dx = -rho*sin(theta)*dTheta + dRho*cos(theta);
-    dy = rho*cos(theta)*dTheta + dRho*sin(theta);
-    dz=0;
-    dState=[dx dy dz]';
+    x = state(1);
+    y = state(2);
+    [theta,rho]=cart2pol(x,y);
+    [dRho,dTheta] = pointFollower(sensors);
+    dx = dRho*cos(theta) - rho*sin(theta)*dTheta ;
+    dy = dRho*sin(theta) + rho*cos(theta)*dTheta ;
+    dz = 0 ;
+    dState = [dx dy dz]';
 end
