@@ -9,7 +9,7 @@ clear, clc, close
 pos=[0,  0;   
     -1,  1];
 angle=[20,-20];     % [degrees]
-distance=[2.5,1];
+distance=[3.5,1];
 sensorActivated=[true;true];
 %%strategy= pointFollower
 sensors.Position=pos;
@@ -18,9 +18,9 @@ sensors.distance=distance;
 sensors.Activated=sensorActivated;
 
 %% simulate
-state0=[0 0 0]';
+state0=[0 0 0.05 0]';
 tspan=linspace(0,40,100);
-tspan=[0 20]
+tspan=[0 30]
 [t,states] = ode45(@(t,state)movement(t,state,sensors),tspan,state0);
 xTraject=states(:,1);
 yTraject=states(:,2);
@@ -36,24 +36,30 @@ plot(t,yTraject)
 
 subplot(2,1,2)
 plot(xTraject,yTraject)
+axis equal
 
 
 %% animate
 figure(2)
 n=size(states,1)
+p = nsidedpoly(1000, 'Center', [0 0 ], 'Radius', 4);
 
-for k = 1:100:n
-    translations=states(k,:);
+
+for k = 1:n
+    translations=states(k,1:3);
     %rotations=zeros(size(translations,1),4);
-    rotations=quaternion([0,0,0],'rotvec');
+    rotations=quaternion([0 0 states(k,4)],'rotvec');
     %
-    ax = plotTransforms(translations,rotations,"MeshFilePath","robot.stl","MeshColor",[0.6 0.6 0.6]);
+    plot(p, 'FaceColor', 'k','EdgeColor',[1 0.2 0.2],'LineWidth',5)
+    hold on
+    ax = plotTransforms(translations,rotations,"MeshFilePath","robot.stl","MeshColor",[0.4 0.4 1]);
+    
     axis equal
-    xline(0)
-    yline(0)
-    axis([-2 2 -2 2 -0.1 1])
-
-    pause(0.5)
+    axis([-5 5 -5 5 -0.1 1])
+    line(2*xlim, [0,0], [0,0], 'LineWidth', 1, 'Color', 'k')
+    line([0,0], 2*ylim, [0,0], 'LineWidth', 1, 'Color', 'k');
+    hold off
+    pause(0.1)
 
 end
 
@@ -83,8 +89,8 @@ hold off
 %% functions
 
 function [linearVelocity,angularVelocity,target,xBeam,yBeam]=pointFollower(sensors)
-    kV=3;
-    kOmega=1;
+    kV=4.2;
+    kOmega=7;
 
     sensorPosition=sensors.Position;
     sensorAngle=sensors.angle;
@@ -108,10 +114,11 @@ end
 function dState=movement(t,state,sensors)
     x = state(1);
     y = state(2);
-    [theta,rho]=cart2pol(x,y);
+    theta=state(4);
+    [alpha,rho]=cart2pol(x,y);
     [dRho,dTheta] = pointFollower(sensors);
-    dx = dRho*cos(theta) - rho*sin(theta)*dTheta ;
-    dy = dRho*sin(theta) + rho*cos(theta)*dTheta ;
+    dx = dRho*cos(theta) ;  %- rho*sin(theta)*dTheta ;
+    dy = dRho*sin(theta) ;  %+ rho*cos(theta)*dTheta ;
     dz = 0 ;
-    dState = [dx dy dz]';
+    dState = [dx dy dz dTheta]';
 end
