@@ -6,6 +6,7 @@ close 'all', clear, clc
 
 x_obj=3*[ -3.5 -3.5 1.5 1.5 3.5 3.5 -2.5 -2.5 1.5 1.5 -1];
 y_obj=-3*[ 0 3.5 3.5 -1.5 -1.5 -8 -8 -5.5 -5.5 -3.5 -3.5];
+
 theta_obj= pi*linspace(0,1,length(x_obj));             
 theta_obj=[pi, pi/2, 0, -pi/2, 0, -pi/2, pi, pi/2, 0, pi/2, pi]; 
 
@@ -90,7 +91,7 @@ theta=variables(:,3)';
 filename = 'differential-robot.gif';
 
 
-film=true;
+film=false;
 % if(film)
 %     myVideo = VideoWriter('movile_robot_animation.avi'); %open video file
 %     myVideo.FrameRate = 30;  %can adjust this, 5 - 10 works well for me
